@@ -246,7 +246,6 @@ public class Task2 extends Task {
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
 
-//        formulateOracleQuestion();
 
         Scanner sc2 = new Scanner(new FileInputStream(oracleOutFilename));
         while(sc2.hasNextLine()) {

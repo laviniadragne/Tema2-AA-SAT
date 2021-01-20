@@ -27,14 +27,12 @@ public class Task3 extends Task {
     private int m;
 
 
-    private int numVars;
     private int vect[];
-
-    private List<Integer> outNodes;
 
     private int dimClique;
 
     private int complement[][];
+
 
     public int[][] getA() {
         return a;
@@ -186,6 +184,7 @@ public class Task3 extends Task {
             // Rezolv task-ul 2
             task2Solver.solve();
 
+            // Citesc din fisierul de output al Task-ului 2
             extractAnswerFromTask2(k);
 
             // Am gasit o clica
