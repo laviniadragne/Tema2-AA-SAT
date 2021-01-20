@@ -2,7 +2,8 @@
 // Author: Matei Simtinică
 
 import java.io.*;
-import java.nio.file.Files;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -28,6 +29,8 @@ public class Task1 extends Task {
         private String answer;
         private int numVars;
         private int vect[];
+
+        private List<Integer> outputBuffer;
 
         public int[][] getA() {
             return a;
@@ -126,7 +129,7 @@ public class Task1 extends Task {
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-        readProblemData();
+//        readProblemData();
 
         myWriter.write("p cnf ");
         // Numarul total de var
@@ -189,7 +192,8 @@ public class Task1 extends Task {
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
-        formulateOracleQuestion();
+
+//        formulateOracleQuestion();
 
 //        Scanner sc2 = new Scanner(new FileInputStream(oracleOutFilename));
 //        while(sc2.hasNextLine()) {
@@ -202,6 +206,7 @@ public class Task1 extends Task {
         // Deschid fisierul de input al oracolului
         Scanner s = new Scanner(new BufferedReader(new FileReader(oracleOutFilename)));
 
+        // Retin raspunsul de la oracol
         this.answer = s.nextLine();
         if (this.answer.equals("True")) {
             this.numVars = s.nextInt();
@@ -210,6 +215,18 @@ public class Task1 extends Task {
                 this.vect[i] = s.nextInt();
         }
 
+        // Interpretez raspunsul si il memorez intr-o lista
+        if (this.answer.equals("True")) {
+            outputBuffer = new LinkedList<>();
+
+            for (int i = 1; i <= getN(); i++) {
+                for (int j = 1; j <= getK(); j++) {
+                    if (vect[(j - 1) * getN() + i] > 0) {
+                       outputBuffer.add(j);
+                    }
+                }
+            }
+        }
 //        System.out.println(this.answer + " " + this.numVars + "\n");
 //        for (int i = 1; i <= numVars; i++) {
 //            System.out.print(this.vect[i] + " ");
@@ -224,7 +241,7 @@ public class Task1 extends Task {
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
 
-        decipherOracleAnswer();
+//        decipherOracleAnswer();
 
         // Scrierea in fisierul de output
         FileWriter myWriter = new FileWriter(outFilename);
@@ -233,16 +250,11 @@ public class Task1 extends Task {
 
         if (this.answer.equals("True")) {
             myWriter.write("\n");
-            for (int i = 1; i <= getN(); i++) {
-                for (int j = 1; j <= k; j++) {
-                    if (vect[(j - 1) * getN() + i] > 0) {
-                        myWriter.write(String.valueOf(j));
-                        myWriter.write(" ");
-                    }
-                }
+            for (int i = 0; i < outputBuffer.size(); i++) {
+                myWriter.write(String.valueOf(outputBuffer.get(i)));
+                myWriter.write(" ");
             }
         }
-
         myWriter.close();
     }
 }
