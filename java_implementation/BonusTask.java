@@ -1,6 +1,8 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
+import out.production.java_implementation.Constants;
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,28 +20,25 @@ public class BonusTask extends Task {
     // TODO: define necessary variables and/or data structures
 
     /**
-     * Matricea in care retin graful cu muchii adiacente
-     * (familiile de mafioti)
+     * Numarul de noduri (de familii de mafioti)
      */
-    private int[][] a;
     private int n;
+
+    /**
+     * Numarul de muchii (de relatii)
+     */
     private int m;
-    private int k;
 
-    private int numVars;
-    private int[] vect;
-
+    /**
+     * Lista cu output-ul primit de la oracol
+     */
     private List<Integer> outputBuffer;
 
+    /**
+     * Matrice de adiacenta a grafului complementar primit
+     */
     private int[][] complement;
 
-    public int[][] getA() {
-        return a;
-    }
-
-    public void setA(int[][] a) {
-        this.a = a;
-    }
 
     public int getN() {
         return n;
@@ -57,45 +56,22 @@ public class BonusTask extends Task {
         this.m = m;
     }
 
-    public int getK() {
-        return k;
+    public int[][] getComplement() {
+        return complement;
     }
 
-    public void setK(int k) {
-        this.k = k;
-    }
 
-    public void fullZeros(int[][] matrix) {
-        for (int i = 0; i < n; i ++) {
-            for (int j = 0; j < n; j++) {
-                matrix[i][j] = 0;
+    /**
+     * Umple matricea complement de 1 peste tot,
+     * fara diagonala principala
+     */
+    public void fullOne() {
+        for (int i = 1; i < getN(); i++) {
+            for (int j = i + 1; j <= getN(); j++) {
+                    complement[i][j] = 1;
+                    complement[j][i] = 1;
             }
         }
-    }
-
-
-    public int getNumVars() {
-        return numVars;
-    }
-
-    public void setNumVars(int numVars) {
-        this.numVars = numVars;
-    }
-
-    public int[] getVect() {
-        return vect;
-    }
-
-    public void setVect(int[] vect) {
-        this.vect = vect;
-    }
-
-    public List<Integer> getOutputBuffer() {
-        return outputBuffer;
-    }
-
-    public void setOutputBuffer(List<Integer> outputBuffer) {
-        this.outputBuffer = outputBuffer;
     }
 
     @Override
@@ -107,32 +83,38 @@ public class BonusTask extends Task {
         writeAnswer();
     }
 
+    /**
+     * Citesc datele din input si construiesc graful complementar
+     * celui primit
+     */
     @Override
     public void readProblemData() throws IOException {
         // TODO: read the problem input (inFilename) and store the data in the object's attributes
         Scanner s = new Scanner(new BufferedReader(new FileReader(inFilename)));
 
-        // Citesc valorile pentru numarul de noduri, muchii si culori
+        // Citesc valorile pentru numarul de noduri si muchii
         int n = s.nextInt();
         int m = s.nextInt();
 
-        // Setez dimensiunile
-        a = new int[n + 1][n + 1];
         setN(n);
         setM(m);
-        setA(a);
 
-        // Imi declar o structura de date si umplu matricea cu 0
-        fullZeros(a);
+        // Aloc matricea de adiacenta pentru complementul
+        // grafului primit
+        complement = new int[n + 1][n + 1];
+
+        // O umplu cu 1
+        fullOne();
 
         // Completez matricea de adiacenta a grafului
+        // complementar
         while (s.hasNext()) {
             if (s.hasNextInt())
             {
                 int x = s.nextInt();
                 int y = s.nextInt();
-                getA()[x][y] = 1;
-                getA()[y][x] = 1;
+                getComplement()[x][y] = 0;
+                getComplement()[y][x] = 0;
             }
         }
 
@@ -140,41 +122,18 @@ public class BonusTask extends Task {
     }
 
     /**
-     * Construieste graful complementar celui primit
+     *  Aplic algoritmul pentru obtinerea unei clici maximale
+     *  pe complementul grafului primit
      */
-    public void constructComplement() {
-
-        // Setez dimensiunile
-        complement = new int[n + 1][n + 1];
-
-        fullZeros(complement);
-
-        // Construiesc complementara
-        for (int i = 1; i < n; i++) {
-            for (int j = i + 1; j <= n; j++) {
-                if (a[i][j] == 0 && i != j) {
-                    complement[i][j] = 1;
-                    complement[j][i] = 1;
-                }
-            }
-        }
-    }
-
     @Override
     public void formulateOracleQuestion() throws IOException {
         // TODO: transform the current problem into a SAT problem and write it (oracleInFilename) in a format
         //  understood by the oracle
 
-        constructComplement();
-
-        // Aplic algoritmul pentru obtinerea unei clici maximale
-        // pe complementul grafului primit
-
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-
-        myWriter.write("p wcnf ");
+        myWriter.write(Constants.WCNF);
 
         // Numarul total de var
         myWriter.write(String.valueOf(getN()));
@@ -191,11 +150,9 @@ public class BonusTask extends Task {
 
         myWriter.write("\n");
 
-
-        int vars = 0;
-
         // Clauzele soft sunt de forma xi
         // si au ponderea 1
+        // <=> Toate nodurile pot face parte din clica maximala
         for (int i = 1; i <= getN(); i++) {
 
             // Ponderea 1
@@ -207,12 +164,13 @@ public class BonusTask extends Task {
             // Urmatoarea clauza
             myWriter.write("\n");
 
-            vars++;
         }
 
-        // (¬xi ∨ ¬xj) :{vi,vj} !∈ E(G)}
-        for (int i = 1; i <= n - 1; i++) {
-            for (int j = i + 1; j <= n; j++) {
+        // Daca nu e muchie intre cele 2 noduri
+        // ele nu pot face parte din clica maximala
+        // <=> (¬xi ∨ ¬xj) :{vi,vj} !∈ E(G)}
+        for (int i = 1; i <= getN() - 1; i++) {
+            for (int j = i + 1; j <= getN(); j++) {
                 // Daca nu e muchie, e clauza obligatorie
                 if (complement[i][j] == 0) {
                     myWriter.write(String.valueOf(n + 1));
@@ -225,11 +183,12 @@ public class BonusTask extends Task {
             }
         }
 
-
         myWriter.close();
-
     }
 
+    /**
+     * Descifrez raspunsul oracolului si il memorez intr-o lista
+     */
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
@@ -237,29 +196,29 @@ public class BonusTask extends Task {
         // Deschid fisierul de input al oracolului
         Scanner s = new Scanner(new BufferedReader(new FileReader(oracleOutFilename)));
 
-        // Retin raspunsul de la oracol
-        // Cate variabile sunt
+        // Cate variabile sunt in total
         s.nextInt();
         // Cate variabile fac parte din clica maximala
-        int answer = s.nextInt();
-        this.vect = new int[n + 1];
-        for (int i = 1; i <= n; i++)
-                this.vect[i] = s.nextInt();
+        s.nextInt();
 
         // Interpretez raspunsul si il memorez intr-o lista
         outputBuffer = new LinkedList<>();
 
         // Aleg variabilele care nu sunt in raspunsul oracolului
-        // Acelea var parte din familia maxima
+        // Acele variabile parte din familia maxima
             for (int i = 1; i <= getN(); i++) {
-                    if (vect[i] < 0) {
+                    int x = s.nextInt();
+                    if (x < 0) {
                         outputBuffer.add(i);
                     }
-                }
+            }
 
         s.close();
     }
 
+    /**
+     * Scriu raspunsul in fisierul de output
+     */
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)

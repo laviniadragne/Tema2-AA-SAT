@@ -1,6 +1,8 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
+import out.production.java_implementation.Constants;
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,6 +101,9 @@ public class Task1 extends Task {
         writeAnswer();
     }
 
+    /**
+     * Citesc datele din fisierul de input si le stochez in campurile clasei
+     */
     @Override
     public void readProblemData() throws IOException {
         // TODO: read the problem input (inFilename) and store the data in the object's attributes
@@ -135,6 +140,9 @@ public class Task1 extends Task {
         s.close();
     }
 
+    /**
+     * Reduc problema la o problema SAT
+     */
     @Override
     public void formulateOracleQuestion() throws IOException {
         // TODO: transform the current problem into a SAT problem and write it (oracleInFilename) in a format
@@ -143,7 +151,7 @@ public class Task1 extends Task {
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-        myWriter.write("p cnf ");
+        myWriter.write(Constants.CNF);
 
         // Numarul total de variabile
         myWriter.write(String.valueOf(getN() * getK()));
@@ -201,6 +209,9 @@ public class Task1 extends Task {
         myWriter.close();
     }
 
+    /**
+     * Descifrez si memorez raspunsul oracolului
+     */
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
@@ -211,7 +222,7 @@ public class Task1 extends Task {
         // Retin raspunsul de la oracol
         setAnswer(s.nextLine());
 
-        if (getAnswer().equals("True")) {
+        if (getAnswer().equals(Constants.TRUE)) {
 
             // Numarul de variabile returnate de oracol
             int numVars = s.nextInt();
@@ -236,6 +247,9 @@ public class Task1 extends Task {
         s.close();
     }
 
+    /**
+     * Scriu raspunsul in fisierul de output
+     */
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
@@ -248,7 +262,7 @@ public class Task1 extends Task {
 
         // Daca e True, scriu si vectorul cu nodurile
         // corespunzatoare
-        if (getAnswer().equals("True")) {
+        if (getAnswer().equals(Constants.TRUE)) {
             myWriter.write("\n");
             for (Integer integer : outputBuffer) {
                 myWriter.write(String.valueOf(integer));

@@ -1,6 +1,8 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
+import out.production.java_implementation.Constants;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,21 @@ public class Task3 extends Task {
     List<Integer> listTask2 = new ArrayList<>();
 
     /**
+     * Input-ul standard pentru Task2
+     */
+    String standardInputTask2 = "";
+
+    /**
+     * Prima linie standard pentru Task-ul 2
+     */
+    String standardFirstLine = "";
+
+    /**
+     * Prima linie updatata cu valoarea lui k, pentru Task2
+     */
+    String updateFirstLine = "";
+
+    /**
      * Numarul de noduri (de familii de mafioti)
      */
     private int n;
@@ -38,8 +55,15 @@ public class Task3 extends Task {
      */
     private int m;
 
+    /**
+     * Dimensiunea clicii cautate
+     */
     private int k;
 
+    /**
+     * Matricea de adiacenta a grafului complementar celui
+     * din input
+     */
     private int[][] complement;
 
     public int getN() {
@@ -70,10 +94,6 @@ public class Task3 extends Task {
         return complement;
     }
 
-    public void setComplement(int[][] complement) {
-        this.complement = complement;
-    }
-
     public String getAnswerTask2() {
         return answerTask2;
     }
@@ -83,14 +103,68 @@ public class Task3 extends Task {
     }
 
     /**
-     * Umple matricea complement de 1 peste tot
+     * Umple matricea complement de 1 peste tot,
      * fara diagonala principala
      */
     public void fullOne() {
-        for (int i = 1; i <= getN(); i++) {
-            for (int j = 1; j <= getN(); j++) {
-                if (i != j) {
+        for (int i = 1; i <= getN() - 1; i++) {
+            for (int j = i + 1; j <= getN(); j++) {
                     complement[i][j] = 1;
+                    complement[j][i] = 1;
+            }
+        }
+    }
+
+    /**
+     * Scrie prima linie din fisierul de input pentru Task2
+     * @param typeLine tipul de prima linie (1 pentru linia standard
+     *                   cu k = n si 2 pentru k != n)
+     */
+    public void writeLine(int typeLine) {
+        String line = "";
+        // Restul de muchii pana la un graf complet reprezinta
+        // numarul de muchii al grafului complementar
+        int muchiiComplement = getN()*(getN() - 1) / 2 - getM();
+
+        // Scriu in fisierul de input al Task-ului 2 numarul
+        // de noduri, numarul de muchii al grafului ce urmeaza
+        // a fi verificat si dimensiunea clicii cautate
+        line += String.valueOf(getN());
+        line += " ";
+        line += String.valueOf(muchiiComplement);
+        line += " ";
+        // k-ul actual
+        line += String.valueOf(getK());
+        line += "\n";
+        if (typeLine == 1) {
+            this.standardFirstLine = line;
+        }
+        else {
+            this.updateFirstLine = line;
+        }
+    }
+
+    /**
+     * Scrie un input standard cu k = n, pe prima linie si relatiile
+     * dintre noduri, pe celelalte linii, pentru Task2
+     */
+    public void writeStandardInput() {
+
+        // Scrie prima linie
+        writeLine(Constants.STANDARD_LINE);
+
+        // Prima linie adaugata la input
+        this.standardInputTask2 += this.standardFirstLine;
+
+        // Scriu relatiile dintre noduri, in String-ul de input
+        for (int i = 1; i < getN(); i++) {
+            for (int j = i + 1; j <= getN(); j++) {
+                if (complement[i][j] == 1) {
+                    this.standardInputTask2 += String.valueOf(i);
+                    this.standardInputTask2 += " ";
+                    this.standardInputTask2 += (String.valueOf(j));
+                    this.standardInputTask2 += " ";
+                    this.standardInputTask2 += "\n";
                 }
             }
         }
@@ -117,6 +191,9 @@ public class Task3 extends Task {
         writeAnswer();
     }
 
+    /**
+     * Citesc datele din input-ul dat si construiesc graful complementar
+     */
     @Override
     public void readProblemData() throws IOException {
         // TODO: read the problem input (inFilename) and store the data in the object's attributes
@@ -163,9 +240,15 @@ public class Task3 extends Task {
         // Initial dimensiunea maximala a clicii este n (numarul de noduri)
         int k = getN();
 
+        // k-ul e setat cu n
+        setK(k);
+
+        // Scriu Input-ul standard pentru Task2, k-ul fiind n
+        writeStandardInput();
+
         // Cat timp poate exista o clica de dimensiune >= 2
         // si nu am gasit inca una, continui sa reduc la Task2
-        while (k >= 2 && getAnswerTask2().equals("False")) {
+        while (k >= 2 && getAnswerTask2().equals(Constants.FALSE)) {
 
             // Setez dimensiunea clicii pe care o caut
             setK(k);
@@ -194,32 +277,14 @@ public class Task3 extends Task {
         // Scrierea in fisierul de input al task-ului 2
         FileWriter myWriter = new FileWriter(task2InFilename);
 
-        // Restul de muchii pana la un graf complet reprezinta
-        // numarul de muchii al grafului complementar
-        int muchiiComplement = getN()*(getN() - 1) / 2 - getM();
+        // Scriu prima linie cu valoarea actualizata a lui k
+        writeLine(Constants.UPDATE_LINE);
 
-        // Scriu in fisierul de input al Task-ului 2 numarul
-        // de noduri, numarul de muchii al grafului ce urmeaza
-        // a fi verificat si dimensiunea clicii cautate
-        myWriter.write(String.valueOf(getN()));
-        myWriter.write(" ");
-        myWriter.write(String.valueOf(muchiiComplement));
-        myWriter.write(" ");
-        myWriter.write(String.valueOf(getK()));
-        myWriter.write("\n");
+        // Inlocuiesc prima linie din input cu linia cu k-ul updat-at
+        String updateInputTask2 = standardInputTask2.replaceAll(this.standardFirstLine, this.updateFirstLine);
 
-        // Scriu relatiile dintre noduri
-        for (int i = 1; i < getN(); i++) {
-            for (int j = i + 1; j <= getN(); j++) {
-                if (complement[i][j] == 1) {
-                    myWriter.write(String.valueOf(i));
-                    myWriter.write(" ");
-                    myWriter.write(String.valueOf(j));
-                    myWriter.write(" ");
-                    myWriter.write("\n");
-                }
-            }
-        }
+        // Scriu noul input in fisier-ul de intrare pentru Task2
+        myWriter.write(updateInputTask2);
 
         myWriter.close();
     }
@@ -241,7 +306,7 @@ public class Task3 extends Task {
 
         // Daca el e True, citesc si combinatia de noduri
         // din clica
-        if (getAnswerTask2().equals("True")) {
+        if (getAnswerTask2().equals(Constants.TRUE)) {
             for (int i = 1; i <= getK(); i++)
                 listTask2.add(s.nextInt());
         }

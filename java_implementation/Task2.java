@@ -1,6 +1,8 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
+import out.production.java_implementation.Constants;
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +39,6 @@ public class Task2 extends Task {
      * Dimensiunea clicii cautate (familiei extinse)
      */
     private int k;
-
 
     /**
      * Raspunsul dat de oracol (True sau False)
@@ -100,6 +101,9 @@ public class Task2 extends Task {
         writeAnswer();
     }
 
+    /**
+     * Citesc datele din input-ul dat
+     */
     @Override
     public void readProblemData() throws IOException {
         // TODO: read the problem input (inFilename) and store the data in the object's attributes
@@ -120,7 +124,6 @@ public class Task2 extends Task {
         setK(k);
         setA(a);
 
-
         // Completez matricea de adiacenta a grafului
         while (s.hasNext()) {
             if (s.hasNextInt())
@@ -135,6 +138,10 @@ public class Task2 extends Task {
         s.close();
     }
 
+    /**
+     * Formulez intrebarea oracolului, transformand problema curenta
+     * intr-o problema SAT
+     */
     @Override
     public void formulateOracleQuestion() throws IOException {
         // TODO: transform the current problem into a SAT problem and write it (oracleInFilename) in a format
@@ -143,7 +150,7 @@ public class Task2 extends Task {
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-        myWriter.write("p cnf ");
+        myWriter.write(Constants.CNF);
 
         // Numarul total de variabile
         myWriter.write(String.valueOf(getN() * getK()));
@@ -203,9 +210,13 @@ public class Task2 extends Task {
                }
             }
        }
+
         myWriter.close();
     }
 
+    /**
+     * Descifrez raspunsul oracolului, stocandu-l intr-o lista
+     */
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
@@ -216,7 +227,7 @@ public class Task2 extends Task {
         // Retin raspunsul de la oracol
         setAnswer(s.nextLine());
 
-        if (getAnswer().equals("True")) {
+        if (getAnswer().equals(Constants.TRUE)) {
             int numVars = s.nextInt();
             int[] oracleReturnVect = new int[numVars + 1];
             for (int i = 1; i <= numVars; i++)
@@ -236,6 +247,9 @@ public class Task2 extends Task {
         s.close();
     }
 
+    /**
+     * Scriu raspunsul in fisierul de output
+     */
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
@@ -247,7 +261,7 @@ public class Task2 extends Task {
         myWriter.write(getAnswer());
 
         // Daca e true scriu vectorul corespunzator
-        if (getAnswer().equals("True")) {
+        if (getAnswer().equals(Constants.TRUE)) {
             myWriter.write("\n");
             for (Integer integer : outputBuffer) {
                 myWriter.write(String.valueOf(integer));
