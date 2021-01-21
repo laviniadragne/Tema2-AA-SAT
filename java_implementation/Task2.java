@@ -1,8 +1,6 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
-import out.production.java_implementation.Constants;
-
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;

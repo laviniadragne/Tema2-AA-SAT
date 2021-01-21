@@ -1,8 +1,6 @@
 // Copyright 2020
 // Author: Matei Simtinică
 
-import out.production.java_implementation.Constants;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +20,7 @@ public class Task3 extends Task {
     /**
      * Raspunsul primit in urma reducerii de la Task2
      */
-    String answerTask2 = "False";
+    String answerTask2 = Constants.FALSE;
 
     /**
      * Daca raspunsul de la Task2 a fost True, lista cu nodurile
@@ -281,7 +279,8 @@ public class Task3 extends Task {
         writeLine(Constants.UPDATE_LINE);
 
         // Inlocuiesc prima linie din input cu linia cu k-ul updat-at
-        String updateInputTask2 = standardInputTask2.replaceAll(this.standardFirstLine, this.updateFirstLine);
+        String updateInputTask2 = standardInputTask2.replaceAll(this.standardFirstLine,
+                                                                this.updateFirstLine);
 
         // Scriu noul input in fisier-ul de intrare pentru Task2
         myWriter.write(updateInputTask2);

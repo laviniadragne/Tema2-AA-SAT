@@ -1,5 +1,3 @@
-package out.production.java_implementation;
-
 public class Constants {
 
     private Constants() {
