@@ -3,7 +3,6 @@
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -18,29 +17,30 @@ public class Task3 extends Task {
     String task2OutFilename;
     // TODO: define necessary variables and/or data structures
 
-    String answerTask2 = "";
+    /**
+     * Raspunsul primit in urma reducerii de la Task2
+     */
+    String answerTask2 = "False";
+
+    /**
+     * Daca raspunsul de la Task2 a fost True, lista cu nodurile
+     * primite
+     */
     List<Integer> listTask2 = new ArrayList<>();
 
-
-    private int a[][];
+    /**
+     * Numarul de noduri (de familii de mafioti)
+     */
     private int n;
+
+    /**
+     * Numarul de muchii (de relatii)
+     */
     private int m;
 
+    private int k;
 
-    private int vect[];
-
-    private int dimClique;
-
-    private int complement[][];
-
-
-    public int[][] getA() {
-        return a;
-    }
-
-    public void setA(int[][] a) {
-        this.a = a;
-    }
+    private int[][] complement;
 
     public int getN() {
         return n;
@@ -58,18 +58,40 @@ public class Task3 extends Task {
         this.m = m;
     }
 
-    public int getDimClique() {
-        return dimClique;
+    public int getK() {
+        return k;
     }
 
-    public void setDimClique(int dimClique) {
-        this.dimClique = dimClique;
+    public void setK(int k) {
+        this.k = k;
     }
 
-    public void fullZeros(int matrix [][]) {
-        for (int i = 0; i < n; i ++) {
-            for (int j = 0; j < n; j++) {
-                matrix[i][j] = 0;
+    public int[][] getComplement() {
+        return complement;
+    }
+
+    public void setComplement(int[][] complement) {
+        this.complement = complement;
+    }
+
+    public String getAnswerTask2() {
+        return answerTask2;
+    }
+
+    public void setAnswerTask2(String answerTask2) {
+        this.answerTask2 = answerTask2;
+    }
+
+    /**
+     * Umple matricea complement de 1 peste tot
+     * fara diagonala principala
+     */
+    public void fullOne() {
+        for (int i = 1; i <= getN(); i++) {
+            for (int j = 1; j <= getN(); j++) {
+                if (i != j) {
+                    complement[i][j] = 1;
+                }
             }
         }
     }
@@ -84,12 +106,14 @@ public class Task3 extends Task {
         // TODO: implement a way of successively querying the oracle (using Task2) about various arrest numbers until you
         //  find the minimum
 
+        // Citesc datele problemei si le memorez in structurile de date
+        // specifice, construind graful complementar
         readProblemData();
 
-        constructComplement();
-
+        // Reduc succesiv problema la Task2
         applyTask2(task2Solver);
 
+        // Scriu raspunsul in fisierul de output
         writeAnswer();
     }
 
@@ -99,27 +123,29 @@ public class Task3 extends Task {
 
         Scanner s = new Scanner(new BufferedReader(new FileReader(inFilename)));
 
-        // Citesc valorile pentru numarul de noduri, muchii si culori
+        // Citesc valorile pentru numarul de noduri si muchii
         int n = s.nextInt();
         int m = s.nextInt();
 
-        // Setez dimensiunile
-        a = new int[n + 1][n + 1];
         setN(n);
         setM(m);
-        setA(a);
 
-        // Imi declar o structura de date si umplu matricea cu 0
-        fullZeros(a);
+        // Aloc matricea de adiacenta pentru complementul
+        // grafului primit
+        complement = new int[n + 1][n + 1];
+
+        // O umplu cu 1
+        fullOne();
 
         // Completez matricea de adiacenta a grafului
+        // complementar
         while (s.hasNext()) {
             if (s.hasNextInt())
             {
                 int x = s.nextInt();
                 int y = s.nextInt();
-                getA()[x][y] = 1;
-                getA()[y][x] = 1;
+                getComplement()[x][y] = 0;
+                getComplement()[y][x] = 0;
             }
         }
 
@@ -127,96 +153,64 @@ public class Task3 extends Task {
     }
 
     /**
-     * Construieste graful complementar celui primit
+     * Metoda reduce Task-ul 3 la Task-ul 2, cautand in graful
+     * complementar celui primit din input, clica de dimensiune
+     * maximala
+     * @param task2Solver un obiect de tip task2, folosit in reducere
      */
-    public void constructComplement() {
-
-        // Setez dimensiunile
-        complement = new int[n + 1][n + 1];
-
-        fullZeros(complement);
-
-        // Construiesc complementara
-        for (int i = 1; i < n; i++) {
-            for (int j = i + 1; j <= n; j++) {
-                if (a[i][j] == 0 && i != j) {
-                    complement[i][j] = 1;
-                    complement[j][i] = 1;
-                }
-            }
-        }
-
-//        // Afisez complementul
-//        for (int i = 1; i <= n; i++) {
-//            for (int j = 1; j <= n; j++) {
-//                System.out.print(a[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
-//
-//        System.out.println();
-//
-//
-//        // Afisez complementul
-//        for (int i = 1; i <= n; i++) {
-//            for (int j = 1; j <= n; j++) {
-//                System.out.print(complement[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
-
-    }
-
     public void applyTask2(Task2 task2Solver) throws IOException, InterruptedException {
 
+        // Initial dimensiunea maximala a clicii este n (numarul de noduri)
+        int k = getN();
 
-        // Initial dimensiunea maximala a clicii este n, numarul de noduri
-        int k = n;
-        // Nu am gasit inca o clica
-        int ok = 0;
+        // Cat timp poate exista o clica de dimensiune >= 2
+        // si nu am gasit inca una, continui sa reduc la Task2
+        while (k >= 2 && getAnswerTask2().equals("False")) {
 
-        // Cat timp o clica poate avea dimensiunea mai mare de 2
-        // si nu am gasit inca o clica
-        while (k >= 2 && ok == 0) {
-            // Scriu input-ul pentru metoda 1
-            reduceToTask2(k);
+            // Setez dimensiunea clicii pe care o caut
+            setK(k);
+
+            // Scriu input-ul pentru Task-ul 2
+            // cu dimensiunea maximala a clicii fiind k
+            reduceToTask2();
 
             // Rezolv task-ul 2
             task2Solver.solve();
 
             // Citesc din fisierul de output al Task-ului 2
-            extractAnswerFromTask2(k);
+            // raspunsul
+            extractAnswerFromTask2();
 
-            // Am gasit o clica
-            if (answerTask2.equals("True")) {
-                ok = 1;
-            }
             k--;
         }
-        k++;
-        this.dimClique = k;
-
     }
 
-    // Construiesc input-ul pentru Task-ul 2
-    public void reduceToTask2(int k) throws IOException {
+    /**
+     * Construiesc input-ul pentru Task-ul 2
+     */
+    public void reduceToTask2() throws IOException {
         // TODO: reduce the current problem to Task2
 
         // Scrierea in fisierul de input al task-ului 2
         FileWriter myWriter = new FileWriter(task2InFilename);
 
-        // Restul de muchii pana la un graf complet
+        // Restul de muchii pana la un graf complet reprezinta
+        // numarul de muchii al grafului complementar
         int muchiiComplement = getN()*(getN() - 1) / 2 - getM();
 
-        myWriter.write(String.valueOf(this.n));
+        // Scriu in fisierul de input al Task-ului 2 numarul
+        // de noduri, numarul de muchii al grafului ce urmeaza
+        // a fi verificat si dimensiunea clicii cautate
+        myWriter.write(String.valueOf(getN()));
         myWriter.write(" ");
         myWriter.write(String.valueOf(muchiiComplement));
         myWriter.write(" ");
-        myWriter.write(String.valueOf(k));
+        myWriter.write(String.valueOf(getK()));
         myWriter.write("\n");
 
-        for (int i = 1; i < n; i++) {
-            for (int j = i + 1; j <= n; j++) {
+        // Scriu relatiile dintre noduri
+        for (int i = 1; i < getN(); i++) {
+            for (int j = i + 1; j <= getN(); j++) {
                 if (complement[i][j] == 1) {
                     myWriter.write(String.valueOf(i));
                     myWriter.write(" ");
@@ -228,30 +222,36 @@ public class Task3 extends Task {
         }
 
         myWriter.close();
-
-
     }
 
-    // Extrag intr-un vector raspunsul din fisierul de output al task-ului 2
-    public void extractAnswerFromTask2(int k) throws FileNotFoundException {
+    /**
+     * Extrag intr-o lista raspunsul din fisierul de output al task-ului 2
+     */
+    public void extractAnswerFromTask2() throws FileNotFoundException {
         // TODO: extract the current problem's answer from Task2's answer
 
         // Deschid fisierul de output al task-ului 2
         Scanner s = new Scanner(new BufferedReader(new FileReader(task2OutFilename)));
 
+        // Curat lista anterioara
         listTask2.clear();
 
         // Retin raspunsul
-        this.answerTask2 = s.nextLine();
-        if (this.answerTask2.equals("True")) {
-            for (int i = 1; i <= k; i++)
+        setAnswerTask2(s.nextLine());
+
+        // Daca el e True, citesc si combinatia de noduri
+        // din clica
+        if (getAnswerTask2().equals("True")) {
+            for (int i = 1; i <= getK(); i++)
                 listTask2.add(s.nextInt());
         }
 
         s.close();
-
     }
 
+    /**
+     * Scriu raspunsul obtinut in fisierul de output
+     */
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
@@ -259,13 +259,17 @@ public class Task3 extends Task {
         // Scrierea in fisierul de output
         FileWriter myWriter = new FileWriter(outFilename);
 
-        for (int i = 1; i <= n; i++) {
+        // Daca nodul nu se afla in raspunsul oracolului
+        // din fisierul de output al Task-ului 2, atunci
+        // el trebuie eliminat
+        for (int i = 1; i <= getN(); i++) {
             if (!listTask2.contains(i)) {
                 myWriter.write(String.valueOf(i));
                 myWriter.write(" ");
             }
         }
-        myWriter.close();
 
+        myWriter.close();
     }
+
 }

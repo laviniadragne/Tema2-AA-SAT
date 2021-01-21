@@ -21,18 +21,17 @@ public class BonusTask extends Task {
      * Matricea in care retin graful cu muchii adiacente
      * (familiile de mafioti)
      */
-    private int a[][];
+    private int[][] a;
     private int n;
     private int m;
     private int k;
 
-    private int answer;
     private int numVars;
-    private int vect[];
+    private int[] vect;
 
     private List<Integer> outputBuffer;
 
-    private int complement[][];
+    private int[][] complement;
 
     public int[][] getA() {
         return a;
@@ -66,7 +65,7 @@ public class BonusTask extends Task {
         this.k = k;
     }
 
-    public void fullZeros(int matrix[][]) {
+    public void fullZeros(int[][] matrix) {
         for (int i = 0; i < n; i ++) {
             for (int j = 0; j < n; j++) {
                 matrix[i][j] = 0;
@@ -229,28 +228,11 @@ public class BonusTask extends Task {
 
         myWriter.close();
 
-//        System.out.println(vars);
-//        System.out.println(vars);
-//        Scanner sc2 = new Scanner(new FileInputStream(oracleInFilename));
-//        while(sc2.hasNextLine()) {
-//            String line = sc2.nextLine();
-//            System.out.println(line);
-//        }
-//
-//        sc2.close();
-
     }
 
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
-//        Scanner sc2 = new Scanner(new FileInputStream(oracleOutFilename));
-//        while(sc2.hasNextLine()) {
-//            String line = sc2.nextLine();
-//            System.out.println(line);
-//        }
-//
-//        sc2.close();
 
         // Deschid fisierul de input al oracolului
         Scanner s = new Scanner(new BufferedReader(new FileReader(oracleOutFilename)));
@@ -259,7 +241,7 @@ public class BonusTask extends Task {
         // Cate variabile sunt
         s.nextInt();
         // Cate variabile fac parte din clica maximala
-        this.answer = s.nextInt();
+        int answer = s.nextInt();
         this.vect = new int[n + 1];
         for (int i = 1; i <= n; i++)
                 this.vect[i] = s.nextInt();
@@ -276,13 +258,6 @@ public class BonusTask extends Task {
                 }
 
         s.close();
-//
-//
-//        System.out.println( "//////////" + this.answer + " " + this.numVars + "\n");
-//        for (int i = 1; i <= numVars; i++) {
-//            System.out.print(this.vect[i] + " ");
-//        }
-
     }
 
     @Override
@@ -292,10 +267,10 @@ public class BonusTask extends Task {
         // Scrierea in fisierul de output
         FileWriter myWriter = new FileWriter(outFilename);
 
-            for (int i = 0; i < outputBuffer.size(); i++) {
-                myWriter.write(String.valueOf(outputBuffer.get(i)));
-                myWriter.write(" ");
-            }
+        for (Integer integer : outputBuffer) {
+            myWriter.write(String.valueOf(integer));
+            myWriter.write(" ");
+        }
 
         myWriter.close();
     }

@@ -17,20 +17,38 @@ import java.util.Scanner;
 public class Task1 extends Task {
     // TODO: define necessary variables and/or data structures
 
-    /**
-     * Matricea in care retin graful cu muchii adiacente
-     * (familiile de mafioti)
-     */
-        private int a[][];
+        /**
+         * Matricea in care retin muchiile adiacente
+         * (familiile de mafioti si relatiile dintre ele)
+         */
+        private int[][] a;
+        
+        /**
+         * Numarul de noduri (de familii de mafioti)
+         */
         private int n;
+        
+        /**
+         * Numarul de muchii (de relatii)
+         */
         private int m;
+        
+        /**
+         * Numarul de culori (spionii disponibili)
+         */
         private int k;
-
+        
+        /**
+         * Raspunsul dat de oracol (True sau False)
+         */
         private String answer;
-        private int numVars;
-        private int vect[];
 
+        /**
+         * Lista cu nodurile ce trebuie
+         * scrise in fisierul de iesire
+         */
         private List<Integer> outputBuffer;
+
 
         public int[][] getA() {
             return a;
@@ -64,14 +82,13 @@ public class Task1 extends Task {
             this.k = k;
         }
 
-        public void fullZeros() {
-           for (int i = 0; i < n; i ++) {
-               for (int j = 0; j < n; j++) {
-                   a[i][j] = 0;
-               }
-           }
+        public String getAnswer() {
+            return answer;
         }
 
+        public void setAnswer(String answer) {
+            this.answer = answer;
+        }
 
     @Override
     public void solve() throws IOException, InterruptedException {
@@ -93,32 +110,29 @@ public class Task1 extends Task {
         int m = s.nextInt();
         int k = s.nextInt();
 
-        // Setez dimensiunile
+        // Setez dimensiunile si aloc memorie
+        // Valorile din matricea a vor fi initializate
+        // by default cu 0
         a = new int[n + 1][n + 1];
         setN(n);
         setM(m);
         setK(k);
         setA(a);
 
-        // Imi declar o structura de date si umplu matricea cu 0
-        fullZeros();
-
         // Completez matricea de adiacenta a grafului
+        // cu datele primite
         while (s.hasNext()) {
             if (s.hasNextInt())
             {
                 int x = s.nextInt();
                 int y = s.nextInt();
-                // Daca perechea sa e deja 1, nu mai e nevoie
-                // sa verificam si adiacenta
-                if (getA()[y][x] != 1) {
-                    getA()[x][y] = 1;
-                }
+                getA()[x][y] = 1;
+                getA()[y][x] = 1;
+
             }
         }
 
         s.close();
-
     }
 
     @Override
@@ -129,18 +143,20 @@ public class Task1 extends Task {
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-//        readProblemData();
-
         myWriter.write("p cnf ");
-        // Numarul total de var
+
+        // Numarul total de variabile
         myWriter.write(String.valueOf(getN() * getK()));
         myWriter.write(" ");
+
         // Numarul de clauze
-        int clauze = getK() * getN() + (getK() * (getK() + 1))/2 + getM();
+        int clauze = getN() + getN() * (getK() * (getK() + 1))/2 + getM();
         myWriter.write(String.valueOf(clauze));
         myWriter.write("\n");
 
+
         for (int l = 1; l <= getN(); l++) {
+            // Fiecare nod e colorat cu minim o culoare
             for (int i = 1; i <= getK(); i++) {
                 myWriter.write(String.valueOf((i - 1) * getN() + l));
                 myWriter.write(" ");
@@ -152,6 +168,7 @@ public class Task1 extends Task {
             // Urmatoarea clauza
             myWriter.write("\n");
 
+            // Un nod poate avea o singura culoare
             for (int j = 1; j <= k - 1; j++) {
                 for (int t = j + 1; t <= k; t++) {
                     myWriter.write(String.valueOf(-((j - 1) * getN() + l)));
@@ -163,9 +180,12 @@ public class Task1 extends Task {
             }
         }
 
-        for (int i = 1; i <= getN(); i++) {
-            for (int j = 1; j <= getN(); j++) {
-                // Daca sunt adiacente
+        // Verific doar pe jumatate din matrice
+        // cealalta jumatate fiind simetrica
+        for (int i = 1; i < getN(); i++) {
+            for (int j = i + 1; j <= getN(); j++) {
+                // Daca 2 noduri sunt adiacente,
+                // nu pot avea aceeasi culoare
                 if (getA()[i][j] == 1) {
                     for (int t = 1; t <= getK(); t++) {
                         myWriter.write(String.valueOf(-((t - 1) * getN() + i)));
@@ -179,79 +199,59 @@ public class Task1 extends Task {
         }
 
         myWriter.close();
-
-//        Scanner sc2 = new Scanner(new FileInputStream(oracleInFilename));
-//        while(sc2.hasNextLine()) {
-//            String line = sc2.nextLine();
-//            System.out.println(line);
-//        }
-//
-//        sc2.close();
     }
 
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
 
-//        formulateOracleQuestion();
-
-//        Scanner sc2 = new Scanner(new FileInputStream(oracleOutFilename));
-//        while(sc2.hasNextLine()) {
-//            String line = sc2.nextLine();
-//            System.out.println(line);
-//        }
-//
-//        sc2.close();
-
         // Deschid fisierul de input al oracolului
         Scanner s = new Scanner(new BufferedReader(new FileReader(oracleOutFilename)));
 
         // Retin raspunsul de la oracol
-        this.answer = s.nextLine();
-        if (this.answer.equals("True")) {
-            this.numVars = s.nextInt();
-            this.vect = new int[numVars + 1];
+        setAnswer(s.nextLine());
+
+        if (getAnswer().equals("True")) {
+
+            // Numarul de variabile returnate de oracol
+            int numVars = s.nextInt();
+
+            // Vectorul returnat de oracol (daca raspunsul
+            // e True)
+            int[] oracleReturnVect = new int[numVars + 1];
+
             for (int i = 1; i <= numVars; i++)
-                this.vect[i] = s.nextInt();
-        }
+                oracleReturnVect[i] = s.nextInt();
 
-        // Interpretez raspunsul si il memorez intr-o lista
-        if (this.answer.equals("True")) {
+            // Interpretez raspunsul si il memorez intr-o lista
             outputBuffer = new LinkedList<>();
-
             for (int i = 1; i <= getN(); i++) {
                 for (int j = 1; j <= getK(); j++) {
-                    if (vect[(j - 1) * getN() + i] > 0) {
-                       outputBuffer.add(j);
+                    if (oracleReturnVect[(j - 1) * getN() + i] > 0) {
+                        outputBuffer.add(j);
                     }
                 }
             }
         }
-//        System.out.println(this.answer + " " + this.numVars + "\n");
-//        for (int i = 1; i <= numVars; i++) {
-//            System.out.print(this.vect[i] + " ");
-//        }
-
         s.close();
-
-
     }
 
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
 
-//        decipherOracleAnswer();
-
         // Scrierea in fisierul de output
         FileWriter myWriter = new FileWriter(outFilename);
 
-        myWriter.write(answer);
+        // Scriu raspunsul
+        myWriter.write(getAnswer());
 
-        if (this.answer.equals("True")) {
+        // Daca e True, scriu si vectorul cu nodurile
+        // corespunzatoare
+        if (getAnswer().equals("True")) {
             myWriter.write("\n");
-            for (int i = 0; i < outputBuffer.size(); i++) {
-                myWriter.write(String.valueOf(outputBuffer.get(i)));
+            for (Integer integer : outputBuffer) {
+                myWriter.write(String.valueOf(integer));
                 myWriter.write(" ");
             }
         }

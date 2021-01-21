@@ -18,18 +18,36 @@ public class Task2 extends Task {
     // TODO: define necessary variables and/or data structures
 
     /**
-     * Matricea in care retin graful cu muchii adiacente
-     * (familiile de mafioti)
+     * Matricea in care retin muchiile adiacente
+     * (familiile de mafioti si relatiile dintre ele)
      */
-    private int a[][];
+    private int[][] a;
+
+    /**
+     * Numarul de noduri (de familii de mafioti)
+     */
     private int n;
+
+    /**
+     * Numarul de muchii (de relatii)
+     */
     private int m;
+
+    /**
+     * Dimensiunea clicii cautate (familiei extinse)
+     */
     private int k;
 
-    private String answer;
-    private int numVars;
-    private int vect[];
 
+    /**
+     * Raspunsul dat de oracol (True sau False)
+     */
+    private String answer;
+
+    /**
+     * Lista cu nodurile ce trebuie
+     * scrise in fisierul de iesire
+     */
     private List<Integer> outputBuffer;
 
     public int[][] getA() {
@@ -64,14 +82,6 @@ public class Task2 extends Task {
         this.k = k;
     }
 
-    public void fullZeros(int matrix[][]) {
-        for (int i = 0; i < n; i ++) {
-            for (int j = 0; j < n; j++) {
-                matrix[i][j] = 0;
-            }
-        }
-    }
-
     public String getAnswer() {
         return answer;
     }
@@ -80,29 +90,6 @@ public class Task2 extends Task {
         this.answer = answer;
     }
 
-    public int getNumVars() {
-        return numVars;
-    }
-
-    public void setNumVars(int numVars) {
-        this.numVars = numVars;
-    }
-
-    public int[] getVect() {
-        return vect;
-    }
-
-    public void setVect(int[] vect) {
-        this.vect = vect;
-    }
-
-    public List<Integer> getOutputBuffer() {
-        return outputBuffer;
-    }
-
-    public void setOutputBuffer(List<Integer> outputBuffer) {
-        this.outputBuffer = outputBuffer;
-    }
 
     @Override
     public void solve() throws IOException, InterruptedException {
@@ -119,20 +106,20 @@ public class Task2 extends Task {
 
         Scanner s = new Scanner(new BufferedReader(new FileReader(inFilename)));
 
-        // Citesc valorile pentru numarul de noduri, muchii si culori
+        // Citesc valorile pentru numarul de noduri, muchii si
+        // dimensiunea familiei extinse
         int n = s.nextInt();
         int m = s.nextInt();
         int k = s.nextInt();
 
-        // Setez dimensiunile
+        // Setez dimensiunile matricei
+        // Aceasta va fi initializata by default cu 0
         a = new int[n + 1][n + 1];
         setN(n);
         setM(m);
         setK(k);
         setA(a);
 
-        // Imi declar o structura de date si umplu matricea cu 0
-        fullZeros(a);
 
         // Completez matricea de adiacenta a grafului
         while (s.hasNext()) {
@@ -152,37 +139,31 @@ public class Task2 extends Task {
     public void formulateOracleQuestion() throws IOException {
         // TODO: transform the current problem into a SAT problem and write it (oracleInFilename) in a format
         //  understood by the oracle
+
         // Scrierea in fisierul oracolului
         FileWriter myWriter = new FileWriter(oracleInFilename);
 
-//        readProblemData();
-
         myWriter.write("p cnf ");
-        // Numarul total de var
+
+        // Numarul total de variabile
         myWriter.write(String.valueOf(getN() * getK()));
         myWriter.write(" ");
+
         // Numarul de clauze
-
-//        int clauze = getK() * getN() + (getK()*getK()-getK()) * (getN()*getN() - getM()) +
-//                (getN() * getN() - getN()) * getK();
-
-        int clauze = k +  n * (k * (k - 1) / 2) + (n * n - n - 2 * m) * k * (k - 1) / 2;
+        int clauze = getK() +  getN() * (getK() * (getK() - 1) / 2)
+                + (getN() * getN() - getN() - 2 * getM()) * getK() * (getK() - 1) / 2;
         myWriter.write(String.valueOf(clauze));
         myWriter.write("\n");
 
 
-        int vars = 0;
-
         // Pentru fiecare pozitie din clica sigur e asignat
         // un nod
-        for (int l = 1; l <= k; l++) {
-            for (int i = 1; i <= n; i++) {
+        for (int l = 1; l <= getK(); l++) {
+            for (int i = 1; i <= getN(); i++) {
                 myWriter.write(String.valueOf((l - 1) * getN() + i));
                 myWriter.write(" ");
-
             }
 
-            vars++;
             // S-a terminat clauza
             myWriter.write("0");
 
@@ -190,90 +171,62 @@ public class Task2 extends Task {
             myWriter.write("\n");
         }
 
-
-
         // Daca nu exista muchie intre 2 noduri atunci ele
         // nu pot face parte din aceeasi clica
-          for (int u = 1; u <= n; u++) {
-              for (int w = 1; w <= n; w++) {
+          for (int u = 1; u <= getN(); u++) {
+              for (int w = 1; w <= getN(); w++) {
                   if (a[u][w] == 0 && u != w) {
-                      for (int i = 1; i <= k - 1; i++) {
-                          for (int j = i + 1; j <= k; j++) {
+                      for (int i = 1; i <= getK() - 1; i++) {
+                          for (int j = i + 1; j <= getK(); j++) {
 
-                                  vars++;
-                                  myWriter.write(String.valueOf(-((i - 1) * getN() + u)));
-                                  myWriter.write(" ");
-                                  myWriter.write(String.valueOf(-((j - 1) * getN() + w)));
-                                  myWriter.write(" 0");
-                                  myWriter.write("\n");
-
-                              }
+                              myWriter.write(String.valueOf(-((i - 1) * getN() + u)));
+                              myWriter.write(" ");
+                              myWriter.write(String.valueOf(-((j - 1) * getN() + w)));
+                              myWriter.write(" 0");
+                              myWriter.write("\n");
                           }
                       }
+                  }
               }
           }
 
-        // Un nod nu poate fi pe 2 pozitii
-        for (int v = 1; v <= n; v++) {
-            for (int i = 1; i <= k - 1; i++) {
-               for (int j = i + 1; j <= k; j++) {
+        // Un nod nu poate fi pe 2 pozitii diferite in clica
+        for (int v = 1; v <= getN(); v++) {
+            for (int i = 1; i <= getK() - 1; i++) {
+               for (int j = i + 1; j <= getK(); j++) {
 
-                          vars++;
-                           myWriter.write(String.valueOf(-((i - 1) * getN() + v)));
-                           myWriter.write(" ");
-                           myWriter.write(String.valueOf(-((j - 1) * getN() + v)));
-                           myWriter.write(" 0");
-                           myWriter.write("\n");
-                       }
+                   myWriter.write(String.valueOf(-((i - 1) * getN() + v)));
+                   myWriter.write(" ");
+                   myWriter.write(String.valueOf(-((j - 1) * getN() + v)));
+                   myWriter.write(" 0");
+                   myWriter.write("\n");
                }
+            }
        }
-
-
         myWriter.close();
-
-//        System.out.println(vars);
-//        System.out.println(vars);
-//        Scanner sc2 = new Scanner(new FileInputStream(oracleInFilename));
-//        while(sc2.hasNextLine()) {
-//            String line = sc2.nextLine();
-//            System.out.println(line);
-//        }
-//
-//        sc2.close();
     }
 
     @Override
     public void decipherOracleAnswer() throws IOException {
         // TODO: extract the current problem's answer from the answer given by the oracle (oracleOutFilename)
 
-
-        Scanner sc2 = new Scanner(new FileInputStream(oracleOutFilename));
-        while(sc2.hasNextLine()) {
-            String line = sc2.nextLine();
-            System.out.println(line);
-        }
-
-        sc2.close();
-
         // Deschid fisierul de input al oracolului
         Scanner s = new Scanner(new BufferedReader(new FileReader(oracleOutFilename)));
 
         // Retin raspunsul de la oracol
-        this.answer = s.nextLine();
-        if (this.answer.equals("True")) {
-            this.numVars = s.nextInt();
-            this.vect = new int[numVars + 1];
+        setAnswer(s.nextLine());
+
+        if (getAnswer().equals("True")) {
+            int numVars = s.nextInt();
+            int[] oracleReturnVect = new int[numVars + 1];
             for (int i = 1; i <= numVars; i++)
-                this.vect[i] = s.nextInt();
-        }
+                oracleReturnVect[i] = s.nextInt();
 
-        // Interpretez raspunsul si il memorez intr-o lista
-        if (this.answer.equals("True")) {
+            // Interpretez raspunsul si il memorez intr-o lista
             outputBuffer = new LinkedList<>();
-
             for (int i = 1; i <= getN(); i++) {
                 for (int j = 1; j <= getK(); j++) {
-                    if (vect[(j - 1) * getN() + i] > 0) {
+                    if (oracleReturnVect[(j - 1) * getN() + i] > 0) {
                         outputBuffer.add(i);
                     }
                 }
@@ -281,33 +234,27 @@ public class Task2 extends Task {
         }
 
         s.close();
-
-
-//        System.out.println(this.answer + " " + this.numVars + "\n");
-//        for (int i = 1; i <= numVars; i++) {
-//            System.out.print(this.vect[i] + " ");
-//        }
-//
     }
 
     @Override
     public void writeAnswer() throws IOException {
         // TODO: write the answer to the current problem (outFilename)
 
-//        decipherOracleAnswer();
-
         // Scrierea in fisierul de output
         FileWriter myWriter = new FileWriter(outFilename);
 
-        myWriter.write(answer);
+        // Scriu raspunsul
+        myWriter.write(getAnswer());
 
-        if (this.answer.equals("True")) {
+        // Daca e true scriu vectorul corespunzator
+        if (getAnswer().equals("True")) {
             myWriter.write("\n");
-            for (int i = 0; i < outputBuffer.size(); i++) {
-                myWriter.write(String.valueOf(outputBuffer.get(i)));
+            for (Integer integer : outputBuffer) {
+                myWriter.write(String.valueOf(integer));
                 myWriter.write(" ");
             }
         }
+
         myWriter.close();
     }
 }
