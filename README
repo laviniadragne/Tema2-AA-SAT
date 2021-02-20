@@ -1,0 +1,232 @@
+Nume: Dragne Lavinia-Stefana
+Grupa: 324 CA
+Email: lavinia.dragne@stud.acs.upb.ro
+
+				    	ANALIZA ALGORITMILOR
+				     Tema #2 - "Gigel si mafiotii"
+
+
+	Continutul proiectului este urmatorul:
+
+	-  folder-ul src cu fișierele .java si Makefile-ul
+	-  acest fisier README.
+
+
+	Task-ul 1 - Plantarea spionilor
+	
+
+	Vom traduce problema prezentata intr-una de teoria grafurilor. Astfel, 
+numarul n de familii mafiote reprezinta numarul de noduri dintr-un graf, relatiile
+dintre familii, m, reprezinta muchiile, iar spionii plantati, k, sunt culorile cu care
+pot fi colorate nodurile, fiind 2 diferite pentru oricare 2 familii care se cunosc
+(oricare 2 noduri adiacente). Relatia dintre 2 familii este simetrica, deci graful
+va fi neorientat. Deci, problema pe care trebuie sa o reduc este cea de
+k-Colorability (problema NP-hard), la o problema SAT (problema NP-complete). 
+	Astfel, se aleg nxk variabile pentru encodare, fiecare semnificand daca
+un nod este sau nu colorat, cu o anumita culoare. Avand n noduri si k culori, se obtin
+nxk variabile. Daca am aseza variabilele intr-o matrice, cu n coloane si k linii,
+pe coloana i, pozitia j,  variabila x(i, j), daca este pozitiva, indica faptul ca
+nodul i este colorat cu culoarea j si negativa in caz contrar.
+
+	Observatie: pe tot parcursul rezolvarii acestui task, n va semnifica numarul
+de noduri, m numarul de muchii, iar k numarul de culori.
+
+	Conditiile puse pentru obtinerea clauzelor:
+
+	Conditiile pentru a gasi clauzele necesare reducerii la o problema SAT,
+folosesc conditiile problemei de K-coloring (fiecare conditie imi va da un tip
+de clauza):
+
+	1. Fiecare nod trebuie sa fie colorat cu o culoare, deci macar una din
+variabilele de forma x(i, j) (i <= k si j <= n) este pozitiva (true in expresia
+booleana). Astfel, se poate construi o clauza parcurgand fiecare coloana a matricei
+mai sus mentionate. Fiind n coloane, se vor obtine n clauza din primul tip. Mentionez
+ca, pentru eficienta spatiala, nu am stocat aceste variabile folosite in clauze, ci
+le calculez pe baza formulei: x(i, j) = (i - 1) * n + j, cu numirea variabilelor de
+la 1.
+
+	2. Fiecare nod poate avea o singura culoare si numai una. Astfel, se obtin
+clauzele de tipul 2, in numar de n * (k * (k + 1) / 2). Ele sunt construite prin
+parcurgerea fiecarei coloane din matricea de variabile de encodare (n coloane) si
+verificarea a 2 cate 2 culori cu care poate fi colorat un nod. Deci o clauza va avea
+forma (!(x(j, l) ^ x(t, l)), cu j, t <= k, l <= n). Se foloseste regula lui De Morgen
+si se obtine forma finala a clauzelor de tip 2: !x(j ,l) v !x(t, l). 
+
+	3. Daca 2 noduri sunt adiacente, ele nu pot fi colorate cu aceeasi culoare.
+Se parcurge matricea de adiacenta a grafului (doar partea ei superior triunghiulara,
+graful fiind neorientat matricea este simetrica fata de diagonala principala) si
+pentru fiecare 2 noduri adiacente se pune conditia ca ele sa fie colorate diferit,
+obtinandu-se cel de-al treilea tip de clauza: !x(t, i) v !x(t, j) , i,j <= n, t <= k.
+Se obtin m clauze de acest tip.
+	
+	Interpretarea rezultatelor oracolului:
+
+	Daca colorarea poate avea loc, oracolul va intoarce o lista cu (n * k)
+variabile, fiecare variabila de tip x(i, j), daca este pozitiva, indicand ca nodul
+i este colorat cu a j-a culoare. Culorile corespunzatoare sunt memorate intr-o lista
+si scrise in fisierul de output.
+
+	Corectitudine si complexitate:
+	
+	Din punct de vedere al corectitudinii, daca problema K-colorability intoarce 
+true, inseamna ca toate clauzele vor fi adevarate, deci problema SAT va intoarce true.
+In implicatia reciproca, daca problema SAT intoarce true, toate clauzele sunt
+adevarate, deci si problema K-colorability este adevarata si intoarce true.
+	Din punct de vedere spatial, am folosit o matrice de adiacenta de dimensiune
+n*n si o lista de dimensiune maxim n. Deci, complexitatea este O(n^2).
+	Din punct de vedere temporal, complexitatea este data de functia 
+formulateOracleQuestion(), care este formata din mai multe for-uri imbricate. 
+Astfel se obtine complexitatea de O(n*k + n*(k-1)*k/2 + m*k) si tinandu-se cont
+ca k<=n (numarul de culori este maxim egal cu numarul de noduri) si m <= n*(n-1)/2
+(numarul maxim de muchii pentru un graf complet) se obtine O(n^3), cu n numarul de
+noduri.
+
+
+
+
+	Task-ul 2 - Investigatiile familiilor extinse
+
+
+	Voi traduce problema prezentata, intocmai ca si la task-ul 1, intr-o problema
+pe grafuri si anume determinarea unei clici de dimensiune k, intr-un graf cu n noduri
+si m muchii. Astfel numarul de mafioti n, va fi numarul de noduri, numarul de relatii
+intre familii m, va reprezenta numarul de muchii ale grafului neorientat si 
+dimensiunea familiei extinse, k, va fi dimensiunea clicii cautate. Deci, voi reduce
+problema K-clicii la problema SAT.
+	Voi folosi n*k varibile pentru encodare, de forma x(i, j) cu proprietatea ca
+nodul i se afla pe pozitia j in clica. Oracolul imi va returna o lista cu n*k
+variabile, de acest tip, cele pozitive asigurand proprietatea de mai sus.
+
+	Observatie: Fata de notatiile de la task-ul precedent, pe tot parcursul
+rezolvarii, k va reprezenta dimensiunea clicii cautate.
+	
+	Conditiile puse pentru obtinerea clauzelor:
+
+	Conditiile problemei K-clicii vor determina si formarea clauzelor folosite
+in reducerea la problema SAT:
+
+	1. Exista pe fiecare pozitie i din clica (i<=k) un nod. Astfel, parcurgand
+linie cu linie matricea asignata ipotetic variabilelor pentru encodare, fiind k linii
+(k pozitii disponibile in clica) si n coloane (n noduri ce pot face parte din clica)
+se obtin k clauze de tipul: x(i, 1) v x(i, 2) v ... v x(i, n), i <= k.
+
+	2. Daca nu exista muchie intre 2 noduri in graf, atunci ele nu pot face parte
+din aceeasi clica. Parcurgand matricea de adiacenta a grafului, pentru oricare 2 
+noduri neadiacente este pusa conditia ca ele sa nu fie amandoua in clica, pe nicio
+pozitie, obtinandu-se (n*(n-1)-2*m)*(k*(k-1)/2) clauze de tipul: !x(i,u) v !x(j, w) cu
+u, w <= n, i, j <= k.
+
+	3. Fiecare pozitie din clica trebuie sa fie ocupata de un singur nod, cu
+alte cuvinte, un nod nu poate fi pe 2 pozitii diferite, in acelasi timp. Se obtin,
+parcurgand 2 cate 2 culori pentru fiecare nod n*(k*(k-1)/2) clauze de tipul:
+!x(i, v) v !x(j, v) i, j <= k si v <= n.
+
+	Interpretarea rezultatelor oracolului:
+
+	Daca exista o clica de dimensiune k oracolul va intoarce o lista cu (n * k)
+variabile, fiecare variabila de tip x(i, j), daca este pozitiva, indicand ca nodul
+i este pe a j pozitie in clica. Pozitiile corespunzatoare sunt memorate intr-o lista
+si scrise in fisierul de output.
+
+	
+	Corectitudine si complexitate:
+	
+	Din punct de vedere al corectitudinii, daca problema K-clicii intoarce 
+true, inseamna ca toate clauzele vor fi adevarate, deci problema SAT va intoarce true.
+In implicatia reciproca, daca problema SAT intoarce true, toate clauzele sunt
+adevarate, deci si problema K-clicii este adevarata si intoarce true.
+	Din punct de vedere spatial, am folosit o matrice de adiacenta de dimensiune
+n*n si o lista de dimensiune maxim n. Deci, complexitatea este O(n^2).
+	Din punct de vedere temporal, complexitatea este data de functia 
+formulateOracleQuestion(), care este formata din mai multe for-uri imbricate. 
+Astfel se obtine complexitatea de O(n*k + n*n*(k-1)*k/2 + n*(k-1)*k/2) si tinandu-se
+cont ca k<=n (dimensiunea clicii este maxim egala cu numarul de noduri) se obtine
+O(n^4), cu n numarul de noduri. 
+
+
+
+
+	Task-ul 3 - Arestările mafiotilor
+	
+
+	In cadrul acestui task se va folosi in mod repetat reducerea de la task-ul 2.
+Practic, tot ce am de facut la acest task este sa construiesc input-ul pentru task 2
+si sa scriu rezultatul obtinut de la oracol. Task-ul 2 va fi aplicat cat timp nu
+este gasita o clica, pe graful complementar, celui primit in input. Astfel, caut
+dimensiunea clicii maxime in graful complementar, aceea fiind dimensiunea familiei
+extinse maxime care nu se intelege. Nodurile (familiile) ce nu fac parte din aceasta
+clica inseamna ca trebuie arestate. 
+	Inputul standard pentru task-ul 2 este format din numarul de noduri
+din graf, numarul de muchii si dimensiunea clicii, pe prima linie, urmata de muchiile
+grafului, pe cate o linie. Deci, la fiecare apel al task-ului 2, se va schimba doar 
+prima linie din input si anume dimensiunea clicii cautate, k. De aceea, voi retine 
+intr-un String input-ul standard pentru task-ul 2, folosind metoda writeStandardInput()
+pentru ca ar fi ineficient sa-l construiesc de fiecare data, si voi inlocui la fiecare
+iteratie a lui k doar prima linie din acesta, folosind metoda writeLine().
+	Bucla iterativa din metoda applyTask2(Task2 task2Solver) se opreste cand este
+gasita prima clica sau cand nu exista clici de dimensiune >= 2. Rezultatul oracolului
+este memorat intr-o lista si intocmai ca la task-ul 2, fiecare nod ce este prezent cu
+o valoare negativa in lista semnifica faptul ca nu face parte din clica de dimensiune
+k gasita. Deci, acele variabile trebuie eliminate, reprezentand familiile mafiote ce
+trebuie arestate, ele fiind scrise in fisierul de output.
+	
+	Complexitate
+
+	Din punct de vedere spatial, pe langa task-ul 2 (ce avea o complexitate
+spatiala de O(n^2)), este folosita o matrice de adiacenta de dimensiune n*n pentru
+retinerea grafului complementar, celui primit in input si o lista de dimensiune maxim
+n, pentru raspunsul oracolului. Totusi, task-ul 2 este aplicat de maxim n ori, deci
+se obtine O(n^3) complexitate.
+	Din punct de vedere temporal, constructia grafului complementar aduce o 
+complexitate de O(n*(n-1)/2), adica O(n^2) si constructia input-ului pentru task-ul 2
+O(n*2). Task-ul 2 insa are o complexitate de O(n^4) si este aplicat de maxim n ori,
+pentru un graf complet, deci se obtine O(n^5) complexitate temporala.
+
+
+
+	Task-ul 4 - Bonus - Arestările mafiotilor tura doi
+
+	In cadrul acestui task voi aplica aceeasi reducere ca la task-ul 3 si anume
+voi reduce problema clicii maximale, aplicata pe graful complementar celui primit in
+input, la problema SAT, doar ca voi folosi alta encodare, pentru a respecta cele 2
+tipuri de clauze cerute, soft si hard. Nodurile care nu se afla in clica maximala,
+a grafului complementar, reprezinta familiile ce trebuie arestate, pentru ca in final,
+sa se obtina doar familii care nu se inteleg, adica care nu pot forma o clica, de
+dimensiune mai mare de 2.
+	Astfel, voi folosi un set de n variabile, fiecare variabila x(i) indicand
+daca nodul i (i<=n) este sau nu in clica maximala.
+
+	Conditiile puse pentru obtinerea clauzelor sunt:
+	
+	1. Toate nodurile pot face parte din clica maximala. Astfel, se obtin n
+clauze soft de forma: 1 x(i) 0, (i <= n) asociindu-i fiecareia ponderea 1.
+	2. Daca nu exista muchie intre 2 noduri ale grafului complementar atunci ele
+nu pot face parte din clica maximala. Astfel, voi obtine m (numarul de muchii din
+graful primit in input) clauze hard si le voi asocia fiecareia ponderea (n + 1),
+fiind de forma: (n + 1) (!x(i) v !x(j)) 0 cu i, j <= n.
+
+	Interpretarea rezultatelor primite de oracol:
+	
+	Variabilele negative din raspunsul oracolului reprezinta familiile ce
+trebuie arestate. Ele sunt retinute intr-o lista si scrise ulterior in fisierul de
+output.
+
+	Complexitate
+
+	Din punct de vedere spatial, am folosit o matrice de adiacenta de dimensiune
+n*n (cu n numarul de noduri), pentru a retine complementul grafului din input si o
+lista de dimensiune maxim n, pentru memorarea raspunsului oracolului, obtinandu-se
+o complexitate de O(n^2).
+	Din punct de vedere temporal, complexitatea este data de functia 
+formulateOracleQuestion(), care este formata din mai multe for-uri imbricate.
+Astfel, se obtine complexitatea de O(n + n*(n-1)/2), deci O(n^2) complexitate temporala,
+cu n numarul de noduri. 
+
+
+	Referinte:
+1. https://www.youtube.com/watch?v=HhFSgXbWiWY - task 1
+2. https://cs.stackexchange.com/questions/70531/reduction-3sat-and-clique - task 2
+3. http://www.mate.unlp.edu.ar/~liliana/lawclique_2016/37.pdf - bonus
+
+
+
